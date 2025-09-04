@@ -15,7 +15,7 @@ type LinkItem = {
   id: string;
   longUrl: string;
   shortUrl: string;
-  createdAt: Timestamp;
+  createdAt: Timestamp | Date;
 };
 
 const LINKS_PER_PAGE = 5;
@@ -43,8 +43,13 @@ export default function LinkShortener() {
       });
       return () => unsubscribe();
     } else {
-      const localLinks = JSON.parse(localStorage.getItem('recentLinks') || '[]');
-      setRecentLinks(localLinks);
+      try {
+        const localLinks = JSON.parse(localStorage.getItem('recentLinks') || '[]');
+        setRecentLinks(localLinks.map((link: any) => ({...link, createdAt: new Date(link.createdAt)})));
+      } catch (e) {
+        setRecentLinks([]);
+        localStorage.setItem('recentLinks', '[]');
+      }
     }
   }, [user]);
 
@@ -63,7 +68,7 @@ export default function LinkShortener() {
 
     // Simulate API call to generate short URL
     const generatedShortCode = Math.random().toString(36).substring(2, 8);
-    const newShortUrl = `https://filmplexlinksverify.xo.je/${generatedShortCode}`;
+    const newShortUrl = `https://filmplexlinksadsverify.vercel.app/${generatedShortCode}`;
     const newLinkData = {
       longUrl: longUrl,
       shortUrl: newShortUrl,
@@ -93,8 +98,8 @@ export default function LinkShortener() {
           createdAt: new Date(),
       };
       
-      const updatedLinks = [newLinkWithClientSideDate, ...recentLinks.map(link => ({...link, createdAt: new Date(link.createdAt.seconds * 1000)}))];
-      setRecentLinks(updatedLinks as any);
+      const updatedLinks = [newLinkWithClientSideDate, ...recentLinks];
+      setRecentLinks(updatedLinks);
       localStorage.setItem('recentLinks', JSON.stringify(updatedLinks));
     }
 
