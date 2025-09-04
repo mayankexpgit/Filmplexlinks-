@@ -21,6 +21,8 @@ export default function RootLayout({
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
         <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700;800&display=swap" rel="stylesheet" />
         <meta name="6a97888e-site-verification" content="edb08dfe4fd250bda91969c0d648021f" />
+        <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7511686303598142"
+     crossOrigin="anonymous"></script>
       </head>
       <body className="font-body antialiased">
         <AuthProvider>
