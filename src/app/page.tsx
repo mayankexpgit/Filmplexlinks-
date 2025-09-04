@@ -1,5 +1,7 @@
 import LinkShortener from '@/components/link-shortener';
 import Header from '@/components/layout/header';
+import Link from 'next/link';
+import { Button } from '@/components/ui/button';
 
 export default function Home() {
   return (
@@ -18,6 +20,12 @@ export default function Home() {
 
           <div className="w-full max-w-2xl mt-10">
             <LinkShortener />
+          </div>
+
+          <div className="mt-8">
+             <Button variant="outline" asChild>
+                <Link href="/preview" target="_blank">Preview Shortener Page</Link>
+             </Button>
           </div>
         </div>
       </main>
