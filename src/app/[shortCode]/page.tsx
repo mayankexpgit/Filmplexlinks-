@@ -21,7 +21,7 @@ type LinkData = {
 };
 
 async function getLink(shortCode: string): Promise<LinkData | null> {
-  const shortUrl = `https://filmplexlinksverify.xo.je/${shortCode}`;
+  const shortUrl = `https://filmplexlinksadsverify.vercel.app/${shortCode}`;
   const linksRef = collection(db, 'links');
   const q = query(linksRef, where('shortUrl', '==', shortUrl), limit(1));
 
@@ -35,14 +35,16 @@ async function getLink(shortCode: string): Promise<LinkData | null> {
   return linkDoc.data() as LinkData;
 }
 
-const AD_DURATION = 30; // 30 seconds
+const INITIAL_TIMER_DURATION = 10;
+const AD_DURATION = 30;
 
 export default function ShortLinkPage({ params }: Props) {
   const { shortCode } = params;
   const [linkData, setLinkData] = useState<LinkData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
-  const [countdown, setCountdown] = useState(AD_DURATION);
+  const [step, setStep] = useState(1); // 1: Initial Timer, 2: Get Link, 3: Ad Timer, 4: Generate Link
+  const [countdown, setCountdown] = useState(INITIAL_TIMER_DURATION);
 
   useEffect(() => {
     const fetchLink = async () => {
@@ -64,17 +66,28 @@ export default function ShortLinkPage({ params }: Props) {
   }, [shortCode]);
 
   useEffect(() => {
-    if (linkData) {
+    if (step === 1 || step === 3) {
       if (countdown > 0) {
         const timer = setInterval(() => {
           setCountdown((prev) => prev - 1);
         }, 1000);
         return () => clearInterval(timer);
       } else {
-        window.location.href = linkData.longUrl;
+        setStep((prev) => prev + 1);
       }
     }
-  }, [linkData, countdown]);
+  }, [step, countdown]);
+
+  const handleGetLinkClick = () => {
+    setStep(3);
+    setCountdown(AD_DURATION);
+  };
+  
+  const handleGenerateLinkClick = () => {
+    if(linkData) {
+      window.location.href = linkData.longUrl;
+    }
+  };
 
   if (loading) {
     return (
@@ -89,42 +102,53 @@ export default function ShortLinkPage({ params }: Props) {
     return <NotFound />;
   }
   
-  const progressPercentage = ((AD_DURATION - countdown) / AD_DURATION) * 100;
+  const getProgressPercentage = () => {
+    if (step === 1) return ((INITIAL_TIMER_DURATION - countdown) / INITIAL_TIMER_DURATION) * 100;
+    if (step === 3) return ((AD_DURATION - countdown) / AD_DURATION) * 100;
+    return 100;
+  }
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-background text-foreground p-4">
       <Card className="w-full max-w-2xl text-center">
         <CardHeader>
-          <CardTitle className="text-2xl">Advertisement</CardTitle>
-          <p className="text-muted-foreground pt-2">
-            You will be redirected to your destination link after the ad.
+          <CardTitle className="text-2xl">Please Wait</CardTitle>
+           <p className="text-muted-foreground pt-2">
+            You will be redirected to your destination link shortly.
           </p>
         </CardHeader>
         <CardContent className="space-y-6">
-          {/* 
-            ============================================================
-            AD NETWORK INTEGRATION
-            ============================================================
-            Yahan par aap apne ad network (jaise Google AdSense) ka code
-            snippet paste karein. Ye div ad ke liye placeholder hai.
-            Aap iski styling ko apne ad ke size ke hisaab se adjust
-            kar sakte hain.
-            ============================================================
-          */}
-          <div className="aspect-video bg-muted rounded-lg flex items-center justify-center">
-            <p className="text-muted-foreground">Your Ad Will Be Displayed Here</p>
-          </div>
           
-          <div className='space-y-3'>
-            <Progress value={progressPercentage} className="w-full" />
-            <p className="text-sm text-muted-foreground">
-              Redirecting in {countdown} second{countdown !== 1 ? 's' : ''}...
-            </p>
-          </div>
+          {(step === 1 || step === 3) && (
+            <div className="aspect-video bg-muted rounded-lg flex items-center justify-center">
+              <p className="text-muted-foreground">
+                {step === 3 ? 'Your Ad Will Be Displayed Here' : 'Preparing your link...'}
+              </p>
+            </div>
+          )}
 
-          <Button onClick={() => (window.location.href = linkData.longUrl)} size="lg" className="w-full" disabled={countdown > 0}>
-             {countdown > 0 ? 'Please wait...' : 'Continue to Link'}
-          </Button>
+          <div className='space-y-3'>
+            {(step === 1 || step === 3) && (
+              <>
+                <Progress value={getProgressPercentage()} className="w-full" />
+                <p className="text-sm text-muted-foreground">
+                  Please wait for {countdown} second{countdown !== 1 ? 's' : ''}...
+                </p>
+              </>
+            )}
+
+            {step === 2 && (
+              <Button onClick={handleGetLinkClick} size="lg" className="w-full">
+                Get Link
+              </Button>
+            )}
+
+            {step === 4 && (
+              <Button onClick={handleGenerateLinkClick} size="lg" className="w-full">
+                Generate Link &amp; Continue
+              </Button>
+            )}
+          </div>
 
         </CardContent>
       </Card>
